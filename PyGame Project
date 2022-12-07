@@ -1,0 +1,105 @@
+# PyGame Project
+
+
+import pygame
+import os
+import random
+#pygame.font.init()
+pygame.mixer.init()
+
+WIDTH, HEIGHT = 900, 500
+WIN = pygame.display.set_mode((WIDTH, HEIGHT))
+
+FPS = 100
+pygame.display.set_caption("Garden Defense")
+
+GREY = (128, 128, 128)
+RED = (255, 0, 0)
+
+BORDER = pygame.Rect(WIDTH//2 - 20, 0, 10, HEIGHT)
+
+PLAYER_HEIGHT, PLAYER_WIDTH = 55, 40
+SNAKE_HEIGHT, SNAKE_WIDTH = 55, 40
+
+PLAYER_IMAGE = pygame.image.load(
+    os.path.join('Assets', 'Player.png'))
+PLAYER = pygame.transform.rotate(pygame.transform.scale(
+    PLAYER_IMAGE, (PLAYER_WIDTH, PLAYER_HEIGHT)), 0)
+
+SNAKE_IMAGE = pygame.image.load(
+    os.path.join('Assets', 'snake.png'))
+SNAKE = pygame.transform.rotate(pygame.transform.scale(
+    SNAKE_IMAGE, (SNAKE_WIDTH, SNAKE_HEIGHT)), 0)
+
+
+BACKGROUND_MUSIC = pygame.mixer.music.load('soundTrack.mp3')
+BACKGROUND_MUSIC = pygame.mixer.music.play(-1)
+BACKGROUND = pygame.transform.scale(pygame.image.load(
+    os.path.join('Assets', 'sample2.png')), (WIDTH, HEIGHT))
+
+VEL = 5
+BULLET_VEL = 10
+MAX_BULLETS = 5
+
+def handleMovement(keys_pressed, player):
+    if keys_pressed[pygame.K_UP] and player.y - VEL > 0:
+        player.y -= VEL
+    if keys_pressed[pygame.K_DOWN] and player.y + VEL + player.height < HEIGHT - 15: 
+        player.y += VEL
+
+
+
+
+def handleBullets(player_bullets, snake):
+    for bullet in player_bullets:
+        bullet.x += BULLET_VEL
+        if snake.colliderect(bullet):
+            #pygame.event.post(pygame.event.Event(SNAKE_HIT))
+            player_bullets.remove(bullet)
+        elif bullet.x > WIDTH:
+            player_bullets.remove(bullet)
+
+
+def drawWindow(player, playerBullets):
+    snakes = 6
+    WIN.blit(BACKGROUND, (0, 0))
+    pygame.draw.rect(WIN, GREY, BORDER)
+    WIN.blit(PLAYER, (player.x, player.y))
+    for i in range(snakes):
+        snakeX, snakeY = random.randint(800, 850), random.randint(0, 450)
+        snakeRect = SNAKE.get_rect(center = [snakeX, snakeY])
+        snakeRect.left += 5
+    WIN.blit(SNAKE, snakeRect)
+    for bullet in playerBullets:
+        pygame.draw.rect(WIN, RED, bullet)
+    pygame.display.update()
+
+
+
+
+def main():
+    player = pygame.Rect(350, 275, PLAYER_WIDTH, PLAYER_HEIGHT)
+    playerBullets = []
+    clock = pygame.time.Clock()
+    run = True
+    while run:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                pygame.quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE and len(playerBullets) < MAX_BULLETS:
+                    bullet = pygame.Rect(
+                        player.x + player.width, player.y + player.height//2 - 2, 10, 5)
+                    playerBullets.append(bullet)
+        keysPressed = pygame.key.get_pressed()
+        handleMovement(keysPressed, player)
+        
+        handleBullets(playerBullets, player)
+        drawWindow(player, playerBullets,)
+    
+
+if __name__ == "__main__":
+    main()
+
